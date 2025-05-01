@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail');
 const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware');
 const router = express.Router();
@@ -9,7 +11,6 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   let { username, email, password } = req.body;
 
-  // ✅ Manual Field Validation (Register)
   if (!username || !email || !password) {
     return res.status(400).json({
       success: false,
@@ -18,15 +19,13 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    username = username.toLowerCase(); // ✅ Username lowercase
+    username = username.toLowerCase();
 
-    // ✅ Check if username already exists
     const existingUsername = await User.findOne({ username });
     if (existingUsername) {
       return res.status(400).json({ success: false, message: "Username already taken" });
     }
 
-    // ✅ Check if email already exists
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       return res.status(400).json({ success: false, message: "Email already registered" });
@@ -60,7 +59,6 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  // ✅ Manual Field Validation (Login)
   if (!email || !password) {
     return res.status(400).json({
       success: false,
@@ -115,6 +113,41 @@ router.get('/profile', protect, async (req, res) => {
         email: user.email
       }
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 🔐 Forgot Password Route
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpire = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    const resetUrl = `https://blovegames.com/reset-password/${token}`;
+
+    await sendEmail(
+      user.email,
+      'Reset Your BloveGames Password',
+      `<p>Hello ${user.username},</p>
+       <p>Click the button below to reset your password:</p>
+       <a href="${resetUrl}" style="background-color:#007bff; color:white; padding:10px 20px; text-decoration:none; display:inline-block; border-radius:5px;">Reset Password</a>
+       <br/><br/>
+       <p>Or copy and paste this link into your browser:</p>
+       <p>${resetUrl}</p>
+       <p>This link is valid for 1 hour only.</p>`
+    );
+
+    res.status(200).json({ success: true, message: 'Reset link sent to email ✅' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
