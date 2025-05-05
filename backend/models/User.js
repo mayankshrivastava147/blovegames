@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
     walletBalance: { type: Number, default: 0 },
     resetPasswordToken: { type: String },         // 🔐 New field
     resetPasswordExpire: { type: Date },          // ⏳ New field
+
   });
   
 
