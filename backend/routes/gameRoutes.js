@@ -30,50 +30,47 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Create New Game Session API
-router.post('/create-session', protect, async (req, res) => {
-  const { gameId } = req.body;
+// Credit Wallet API
+router.post('/credit', protect, async (req, res) => {
+  const { amount } = req.body;
 
-  if (!gameId) {
-    return res.status(400).json({ success: false, message: "GameID is required" });
+  if (!amount || amount <= 0) {
+    return res.status(400).json({ success: false, message: 'Invalid amount for credit' });
   }
 
   try {
-    const newSession = new Session({
-      userId: req.user.id,
-      gameId,
-      sessionId: uuidv4()
-    });
+    // 🟢 Get latest session for this user
+    const session = await Session.findOne({ userId: req.user.id })
+      .sort({ createdAt: -1 });
 
-    await newSession.save();
+    if (!session) {
+      return res.status(404).json({ success: false, message: 'No active session found' });
+    }
 
-    res.status(201).json({
-      success: true,
-      message: "Game session created successfully",
-      data: {
-        sessionId: newSession.sessionId,
-        gameId: newSession.gameId
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// Get Wallet Balance API
-router.post('/balance', protect, async (req, res) => {
-  try {
     const user = await User.findById(req.user.id);
+
+    user.walletBalance += amount;
+    await user.save();
+
+    // ✅ Log transaction with latest sessionId
+    await Transaction.create({
+      userId: req.user.id,
+      sessionId: session.sessionId,
+      gameId: session.gameId,
+      type: 'credit',
+      amount
+    });
 
     res.status(200).json({
       success: true,
-      message: 'Balance fetched successfully',
+      message: 'Credit successful',
       data: { balance: user.walletBalance }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 // Debit Wallet API
 router.post('/debit', protect, async (req, res) => {
