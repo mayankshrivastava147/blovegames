@@ -1,15 +1,13 @@
-// utils/verifySignature.js
 const crypto = require('crypto');
 
-function verifySignature(body, receivedSignature, secret) {
-  const payload = JSON.stringify(body); // Body ko JSON string banate hain
-
+function verifySignature(data, providedSignature, secret) {
+  const stringifiedData = typeof data === 'string' ? data : JSON.stringify(data);
   const expectedSignature = crypto
-    .createHmac('sha256', secret)      // secret key ke saath HMAC
-    .update(payload)                   // payload ko encrypt karo
-    .digest('hex');                    // hex format me output lo
+    .createHmac('sha256', secret)
+    .update(stringifiedData)
+    .digest('hex');
 
-  return receivedSignature === expectedSignature; // Match check
+  return expectedSignature === providedSignature;
 }
 
 module.exports = verifySignature;
