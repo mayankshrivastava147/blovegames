@@ -7,10 +7,10 @@ const Session = require('../models/Session');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const appConfig = require('../config/appConfig');
-const mongoose = require('mongoose');
 
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'default_secret';
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
+const APP_SECRET = process.env.APP_SECRET;  // ✅ Loaded from .env
 
 // ✅ Webhook Callback Verification
 router.post('/callback', (req, res) => {
@@ -64,7 +64,11 @@ router.get('/finance/coin/account/balance', async (req, res) => {
     return res.status(403).json({ dm_error: 403, error_msg: 'Invalid app_key or game_key', data: [] });
   }
 
-  const expectedSign = generateSignature({ app_key, game_key, uid, coin_kinds, ts }, 'balance');
+  const expectedSign = generateSignature(
+    { app_key, game_key, uid, coin_kinds, ts, app_secret: APP_SECRET },
+    'balance'
+  );
+
   if (expectedSign !== sign_v2) {
     return res.status(403).json({ dm_error: 403, error_msg: 'Invalid signature', data: [] });
   }
@@ -95,7 +99,11 @@ router.post('/finance/coin/order/create', async (req, res) => {
     return res.status(400).json({ dm_error: 499, error_msg: 'Invalid app_key or game_key', data: {} });
   }
 
-  const expectedSign = generateSignature({ app_key, game_key, uid, opt_type, coin_kind, ts }, 'order_create');
+  const expectedSign = generateSignature(
+    { app_key, game_key, uid, opt_type, coin_kind, ts, app_secret: APP_SECRET },
+    'order_create'
+  );
+
   if (expectedSign !== sign_v2) {
     return res.status(403).json({ dm_error: 403, error_msg: 'Invalid signature', data: {} });
   }
@@ -138,7 +146,11 @@ router.post('/finance/coin/update', async (req, res) => {
     return res.status(400).json({ dm_error: 499, error_msg: 'Invalid app_key or game_key', data: {} });
   }
 
-  const expectedSign = generateSignature({ app_key, game_key, uid, order_id, opt_type, coin_kind, num, ts }, 'update');
+  const expectedSign = generateSignature(
+    { app_key, game_key, uid, order_id, opt_type, coin_kind, num, ts, app_secret: APP_SECRET },
+    'update'
+  );
+
   if (expectedSign !== sign_v2) {
     return res.status(403).json({ dm_error: 403, error_msg: 'Invalid signature', data: {} });
   }

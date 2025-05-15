@@ -2,12 +2,17 @@ const crypto = require('crypto');
 
 /**
  * Generates sign_v2 for API calls
- * @param {string} app_secret - The secret key from .env
- * @param {object} params - Parameters for signature
+ * @param {object} params - Parameters including app_secret
  * @param {string} type - balance | order_create | update
  * @returns {string} sign_v2 hash
  */
-function generateSignature(app_secret, params, type) {
+function generateSignature(params, type) {
+  const app_secret = params.app_secret;
+
+  if (!app_secret) {
+    throw new Error('❌ app_secret missing in params');
+  }
+
   let stringToSign = '';
 
   switch (type) {

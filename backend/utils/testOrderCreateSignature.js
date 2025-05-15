@@ -9,16 +9,16 @@ if (!APP_SECRET) {
 }
 
 const sign = generateSignature(
-  APP_SECRET,
   {
     app_key: 'jk',
     game_key: 'fruitspin',
-    uid: '6824a03ab733c9beda442413',
+    uid: '6825bc2bb0230cba7b5dd9f9',
     opt_type: 'add',
     coin_kind: 'gift_pass',
-    ts: ts
+    ts: ts,
+    app_secret: APP_SECRET   // ✅ Yeh add karo params me
   },
-  'order_create'
+  'order_create'  // ✅ Signature type correct
 );
 
 console.log('Generated ts:', ts);
