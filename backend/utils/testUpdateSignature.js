@@ -12,11 +12,11 @@ const sign = generateSignature(
   {
     app_key: 'jk',
     game_key: 'fruitspin',
-    uid: '6825bc2bb0230cba7b5dd9f9',
-    order_id: 'order_1747305913634_6825bc2bb0230cba7b5dd9f9',
+    uid: '682713216556fe6f0ddd5a84',
+    order_id: 'order_1747392820641_682713216556fe6f0ddd5a84',
     opt_type: 'add',
     coin_kind: 'gift_pass',
-    num: 10,
+    num: 100,
     ts: ts,
     app_secret: APP_SECRET   // ✅ Yeh add karo params me
   },

@@ -20,7 +20,8 @@ const transactionSchema = new mongoose.Schema({
   type: { type: String, enum: ['credit', 'debit'] },
   amount: { type: Number },
   status: { type: String, enum: ['pending', 'completed'] },
-  updatedBalance: { type: Number }
+  updatedBalance: { type: Number },
+  timestamp: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);
